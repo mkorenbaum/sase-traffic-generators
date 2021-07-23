@@ -134,7 +134,7 @@ def go():
                 mydate = time.time()
                 BACKOFF_DB['https_' + myurl] = mydate + timer
                 print("Backoff Val: " + str(BACKOFF_DB['https_' + myurl]))
-
+        time.sleep(random.randrange(1,30))
 
 if __name__ == "__main__":
     go()
