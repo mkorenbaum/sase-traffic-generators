@@ -111,7 +111,7 @@ def go():
         else:
             try:
                 print("trying to connect to http://"+ myurl)
-                resp = requests.get("http://" + myurl + "/robots.txt", timeout=1)
+                resp = requests.get("http://" + myurl + "/robots.txt", timeout=1, verify=False)
                 print("Request to "+myurl+" status= "+str(resp.status_code))
             except requests.exceptions.RequestException as e:
                 print(e)
@@ -125,7 +125,7 @@ def go():
         else:
             try:
                 print("trying to connect to https://"+ myurl)
-                resp2 = requests.get("https://" + myurl + "/robots.txt", timeout=1)
+                resp2 = requests.get("https://" + myurl + "/robots.txt", timeout=1, verify=False)
                 print("Request to "+myurl+" status= "+str(resp2.status_code))
 
 
