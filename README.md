@@ -6,9 +6,9 @@ This set of scripts are used to generate traffic in the SASE Demo Environment
 
 Set of scripts and config files required to do client side traffic generation of the following type. 
 
-gp-traffic-gen.py - script to be run on client machines that are connected to Prisma Access via GP, or MU
-appdomain.txt - list of domains that will simulate a user doing generic internet browsing 
-badsites.txt - list of domains (mostly external) that will trigger various security rules in Prisma Access
+* gp-traffic-gen.py - script to be run on client machines that are connected to Prisma Access via GP, or MU
+* appdomain.txt - list of domains that will simulate a user doing generic internet browsing 
+* badsites.txt - list of domains (mostly external) that will trigger various security rules in Prisma Access
 
 
 #### Requirements
