@@ -34,6 +34,27 @@ MIT
 6. Optionally edit the .txt files to include additional domains
 7. Reboot and check the scripts auto start on login
 
+#### Usage 
+```
+usage: gp-traffic-gen.py [-h] --domains DOMAINS [--insecure] [--debug DEBUG]
+
+SASE Demo Traffic Generator.
+
+optional arguments:
+  -h, --help            show this help message and exit
+
+Options:
+  --domains DOMAINS, -d DOMAINS
+                        List of hosts with /r as delimeter, ex. C:/Users/Admin/Desktop/appdomain.txt
+  --insecure, -I        Disable SSL certificate and hostname verification
+
+Debug:
+  These options enable debugging output
+
+  --debug DEBUG, -D DEBUG
+                        Verbose Debug info, levels 0-2
+
+```
 
 #### Version
 
