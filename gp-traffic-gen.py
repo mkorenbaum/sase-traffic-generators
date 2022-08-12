@@ -13,18 +13,25 @@ import argparse
 import getpass
 import json
 import logging
+from logging.handlers import RotatingFileHandler
 import datetime
 import os
 import sys
+import urllib3
 
+urllib3.disable_warnings()
 # Global Vars
 
 timer = 10800
 SCRIPT_NAME = "SASE Demo Traffic Generator"
-TIME_BETWEEN_REQUESTS = 0       # default no delay between requests
+TIME_BETWEEN_REQUESTS = 5
+MY_LOG_FILE = "sase-traffic-log.txt"
 
-# Set NON-SYSLOG logging to use function name
-logger = logging.getLogger(__name__)
+if not os.path.exists(MY_LOG_FILE):
+    with open(MY_LOG_FILE, 'w') as fp:
+        fp.write("Creating SASE Traffic Generator Log File \n")
+        pass
+
 
 #function to read a file of hostnames separated by carriage returns
 def readFile(fileName):
@@ -70,71 +77,71 @@ def go():
                                   dest='verify', action='store_false', default=True)
 
     debug_group = parser.add_argument_group('Debug', 'These options enable debugging output')
-    debug_group.add_argument("--debug", "-D", help="Verbose Debug info, levels 0-2", type=int,
-                             default=0)
+    debug_group.add_argument("--debug", "-D", help="Print Debug info to stdout", action='store_true')
 
     args = vars(parser.parse_args())
 
-    if args['debug'] == 1:
-        logging.basicConfig(level=logging.INFO,
-                            format="%(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s")
-        logger.setLevel(logging.INFO)
-    elif args['debug'] >= 2:
-        logging.basicConfig(level=logging.DEBUG,
-                            format="%(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s")
-        logger.setLevel(logging.DEBUG)
-    else:
-        # Remove all handlers
-        for handler in logging.root.handlers[:]:
-            logging.root.removeHandler(handler)
-        # set logging level to default
-        logger.setLevel(logging.WARNING)
-
-    # ##########################################################################
-    # Draw Interactive login banner
-    ############################################################################
-
-    print("{0} \n".format(SCRIPT_NAME))
 
     ############################################################################
     # End Login handling, begin script..
     ############################################################################
 
+    # Set NON-SYSLOG logging to use function name
+    logger = logging.getLogger(__name__)
+
+    logger.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s | %(levelname)s | %(message)s',
+                                  '%m-%d-%Y %H:%M:%S')
+
+    file_handler = RotatingFileHandler(MY_LOG_FILE, maxBytes=10000000, backupCount=2)
+    file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+
+    # Print to stdout if debug flag enabled
+    if args['debug']:
+        stdout_handler = logging.StreamHandler(sys.stdout)
+        stdout_handler.setLevel(logging.DEBUG)
+        stdout_handler.setFormatter(formatter)
+        logger.addHandler(stdout_handler)
+
+    # Start main loop
+    logger.info("Running {0} Against Provided List: {1} \n".format(SCRIPT_NAME, args['domains']))
     while True:
+
         # pull in list of hostnames
         mylist = readFile(args['domains'])
         myurl = getRandomUrl(mylist)
         mykey = 'http_' + myurl
 
         if isBackedoff(mykey, BACKOFF_DB):
-            print("Currently backed off for:  " + mykey)
+            logger.error("Currently backed off for:  " + mykey)
         else:
             try:
-                print("trying to connect to http://"+ myurl)
-                resp = requests.get("http://" + myurl + "/robots.txt", timeout=1, verify=False)
-                print("Request to "+myurl+" status= "+str(resp.status_code))
+                logger.info("trying to connect to http://"+ myurl)
+                resp = requests.get("http://" + myurl, timeout=1, verify=False)
+                logger.info("Request to "+myurl+" status= "+str(resp.status_code))
             except requests.exceptions.RequestException as e:
-                print(e)
+                logger.error(e)
                 mydate = time.time()
                 BACKOFF_DB['http_' + myurl] = mydate + timer
-                print("Backoff Val: " + str(BACKOFF_DB['http_' + myurl]))
+                logger.error("Backoff Val: " + str(BACKOFF_DB['http_' + myurl]))
 
         mykey = 'https_' + myurl
         if isBackedoff(mykey, BACKOFF_DB):
-            print("Currently backed off for:  " + mykey)
+            logger.error("Currently backed off for:  " + mykey)
         else:
             try:
-                print("trying to connect to https://"+ myurl)
-                resp2 = requests.get("https://" + myurl + "/robots.txt", timeout=1, verify=False)
-                print("Request to "+myurl+" status= "+str(resp2.status_code))
-
+                logger.info("trying to connect to https://"+ myurl)
+                resp2 = requests.get("https://" + myurl, timeout=1, verify=False)
+                logger.info("Request to "+myurl+" status= "+str(resp2.status_code))
 
             except requests.exceptions.RequestException as e:
-                print(e)
+                logger.error(e)
                 mydate = time.time()
                 BACKOFF_DB['https_' + myurl] = mydate + timer
-                print("Backoff Val: " + str(BACKOFF_DB['https_' + myurl]))
-        time.sleep(random.randrange(1,30))
+                logger.error("Backoff Val: " + str(BACKOFF_DB['https_' + myurl]))
+        time.sleep(random.randrange(0,TIME_BETWEEN_REQUESTS))
 
 if __name__ == "__main__":
     go()
