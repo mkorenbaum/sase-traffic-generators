@@ -119,7 +119,7 @@ def go():
         else:
             try:
                 logger.info("trying to connect to http://"+ myurl)
-                resp = requests.get("http://" + myurl, timeout=1, verify=False)
+                resp = requests.get("http://" + myurl, timeout=15, verify=False)
                 logger.info("Request to "+myurl+" status= "+str(resp.status_code))
             except requests.exceptions.RequestException as e:
                 logger.error(e)
@@ -133,7 +133,7 @@ def go():
         else:
             try:
                 logger.info("trying to connect to https://"+ myurl)
-                resp2 = requests.get("https://" + myurl, timeout=1, verify=False)
+                resp2 = requests.get("https://" + myurl, timeout=15, verify=False)
                 logger.info("Request to "+myurl+" status= "+str(resp2.status_code))
 
             except requests.exceptions.RequestException as e:
