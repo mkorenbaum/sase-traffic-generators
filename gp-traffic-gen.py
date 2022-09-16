@@ -18,6 +18,9 @@ import datetime
 import os
 import sys
 import urllib3
+import platform    # For getting the operating system name
+import subprocess  # For executing a shell command
+
 
 urllib3.disable_warnings()
 # Global Vars
@@ -27,11 +30,25 @@ SCRIPT_NAME = "SASE Demo Traffic Generator"
 TIME_BETWEEN_REQUESTS = 5
 MY_LOG_FILE = "sase-traffic-log.txt"
 
+
 if not os.path.exists(MY_LOG_FILE):
     with open(MY_LOG_FILE, 'w') as fp:
         fp.write("Creating SASE Traffic Generator Log File \n")
         pass
 
+def ping(host):
+    """
+    Returns True if host (str) responds to a ping request.
+    Remember that a host may not respond to a ping (ICMP) request even if the host name is valid.
+    """
+
+    # Option for the number of packets as a function of
+    param = '-n' if platform.system().lower()=='windows' else '-c'
+
+    # Building the command. Ex: "ping -c 1 google.com"
+    command = ['ping', param, '1', host]
+
+    return subprocess.call(command) == 0
 
 #function to read a file of hostnames separated by carriage returns
 def readFile(fileName):
@@ -72,6 +89,10 @@ def go():
     options.add_argument("--domains", "-d",
                                   help="List of hosts with /r as delimeter, ex. C:/Users/Admin/Desktop/appdomain.txt", required=True,
                                   default=None)
+    options.add_argument("--gateway", "-g",
+                         help="Provide the default gateway to prevent the traffic generation from starting until reachable - default 10.0.0.1",
+                         required=False,
+                         default=None)
 
     options.add_argument("--insecure", "-I", help="Disable SSL certificate and hostname verification",
                                   dest='verify', action='store_false', default=True)
@@ -104,6 +125,20 @@ def go():
         stdout_handler.setLevel(logging.DEBUG)
         stdout_handler.setFormatter(formatter)
         logger.addHandler(stdout_handler)
+
+    # check if default gateway IP has been overridden
+    GATEWAY = '10.0.0.1'
+    if args['gateway']:
+        GATEWAY = args['gateway']
+
+    # Prior to starting main loop check if Gateway is reachable
+    result = ping(GATEWAY)
+    while result != True:
+        print("Gateway unreachable will rerty again in 3 seconds")
+        time.sleep(3)
+        result = ping(GATEWAY)
+
+    print("Gateway is NOW REACHABLE Starting Traffic Generation")
 
     # Start main loop
     logger.info("Running {0} Against Provided List: {1} \n".format(SCRIPT_NAME, args['domains']))
