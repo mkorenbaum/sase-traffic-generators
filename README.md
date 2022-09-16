@@ -46,6 +46,10 @@ optional arguments:
 Options:
   --domains DOMAINS, -d DOMAINS
                         List of hosts with /r as delimeter, ex. C:/Users/Admin/Desktop/appdomain.txt
+  
+  --gateway GATEWAY, -g GATEWAY
+                        [Optional] Provide the default gateway to prevent the traffic generation from starting until reachable - default 10.0.0.1
+                        
   --insecure, -I        Disable SSL certificate and hostname verification
 
 Debug:
@@ -61,6 +65,9 @@ Debug:
 | Version | Build | Changes |
 | ------- | ----- | ------- |
 | **1.0.0** | **b1** | Initial Release. |
+| **1.0.1** | **b1** | Added Gateway Check Support. |
+
+
 
 
 
